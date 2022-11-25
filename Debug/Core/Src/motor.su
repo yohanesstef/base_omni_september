@@ -1,1 +1,2 @@
-motor.c:26:6:kontrol_base	16	static
+motor.c:37:6:invers_kinematik	40	static
+motor.c:51:6:kontrol_base	16	static

@@ -18,7 +18,9 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "dma.h"
 #include "tim.h"
+#include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -34,6 +36,22 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define JSSL 0x1
+#define JSL3 0x2
+#define JSR3 0x4
+#define JSST 0x8
+#define JSUP 0x10
+#define JSRG 0x20
+#define JSDW 0x40
+#define JSLF 0x80
+#define JSL2 0x100
+#define JSR2 0x200
+#define JSL1 0x400
+#define JSR1 0x800
+#define JSTR 0x1000
+#define JSCR 0x2000
+#define JSXX 0x4000
+#define JSSQ 0x8000
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -44,13 +62,71 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+float rasio_speed = 0.5;
+int mode = 0;
+int latch = 0, latch_XX = 0, latch_TR = 0;
+int8_t joystick_status;
+int16_t joystick_analog [3];
+uint8_t joystick_value[9];
+uint16_t joystick_button;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
+void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef* huart){
+	if(huart->Instance==USART2){
+		if (joystick_value[0] == 'i' && joystick_value[1] == 't' && joystick_value[2] == 's'){
+			joystick_status = 1;
+		}
+		else{
+			joystick_status= 0;
+			HAL_UART_DMAStop(&huart2);
+			HAL_UART_Receive_DMA(&huart2, joystick_value, 9);
+		}
+	}
+}
 
+void input_analog(){
+	if (joystick_status == 1){
+		joystick_button = ~(joystick_value[3] + (joystick_value[4]<<8));
+		joystick_analog[0]= (joystick_value [7]-127);
+		joystick_analog[1] = (127-joystick_value [8]);
+		joystick_analog[2] = (joystick_value [5]-127);
+	}
+	else {
+		joystick_analog[0] = 0;
+		joystick_analog[1] = 0;
+		joystick_analog[2] = 0;
+	}
+	if(joystick_button == JSR1) {
+		latch = 1;
+		rasio_speed = 0.75;
+	}
+	else if(joystick_button != JSR1 && latch == 1){
+		latch = 0;
+		rasio_speed = 0.5;
+	}
+
+	if(joystick_button == JSSQ)mode = 0;
+	else if(joystick_button == JSCR) mode = 1;
+
+	if(joystick_button == JSXX && latch_XX == 1){
+		latch_XX = 0;
+		rasio_speed += 0.01;
+	}
+	else if(joystick_button != JSXX && latch_XX == 0)latch_XX = 1;
+
+	if (joystick_button == JSTR && latch_TR == 1){
+		latch_TR = 0;
+		rasio_speed -= 0.01;
+	}
+	else if (joystick_button != JSTR && latch_TR == 0)latch_TR = 1;
+
+	if(rasio_speed >= 0.8) rasio_speed = 0.8;
+	else if(rasio_speed <= 0) rasio_speed = 0;
+
+}
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -95,6 +171,8 @@ int main(void)
   MX_TIM9_Init();
   MX_TIM12_Init();
   MX_TIM13_Init();
+  MX_DMA_Init();
+  MX_USART2_UART_Init();
   MX_TIM14_Init();
   /* USER CODE BEGIN 2 */
   ///--------------start encoder dan timer pwm----------------
@@ -110,6 +188,8 @@ int main(void)
   HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_ALL);
+
+  HAL_UART_Receive_DMA(&huart2, joystick_value, 9);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -119,6 +199,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
   }
   /* USER CODE END 3 */
 }

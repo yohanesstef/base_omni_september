@@ -13,6 +13,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 
+void invers_kinematik();
 void kontrol_base();
 
 #endif /* INC_MOTOR_H_ */

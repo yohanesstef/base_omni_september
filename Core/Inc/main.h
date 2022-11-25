@@ -53,7 +53,7 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+void input_analog();
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
@@ -63,6 +63,8 @@ void Error_Handler(void);
 #define enc_0A_GPIO_Port GPIOA
 #define enc_0B_Pin GPIO_PIN_1
 #define enc_0B_GPIO_Port GPIOA
+#define stick_RX_Pin GPIO_PIN_3
+#define stick_RX_GPIO_Port GPIOA
 #define dir_2A_Pin GPIO_PIN_5
 #define dir_2A_GPIO_Port GPIOA
 #define pwm_1_Pin GPIO_PIN_6
@@ -87,6 +89,8 @@ void Error_Handler(void);
 #define dir_2B_GPIO_Port GPIOD
 #define enc_3A_Pin GPIO_PIN_15
 #define enc_3A_GPIO_Port GPIOA
+#define stick_TX_Pin GPIO_PIN_5
+#define stick_TX_GPIO_Port GPIOD
 #define enc_3B_Pin GPIO_PIN_3
 #define enc_3B_GPIO_Port GPIOB
 #define enc_2A_Pin GPIO_PIN_4
